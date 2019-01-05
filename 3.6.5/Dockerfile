@@ -15,21 +15,20 @@ ENV LANG C.UTF-8
 # the other runtime dependencies for Python are installed later
 RUN apk add --no-cache ca-certificates
 
-ENV GPG_KEY 0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D
 ENV PYTHON_VERSION 3.6.5
 
 RUN set -ex \
 	&& apk add --no-cache --virtual .fetch-deps \
 		gnupg \
-		libressl \
 		tar \
 		xz \
+		zlib \
+		bzip2 \
+		openssl \
 	\
 	&& wget -O python.tar.xz "https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz" \
 	&& wget -O python.tar.xz.asc "https://www.python.org/ftp/python/${PYTHON_VERSION%%[a-z]*}/Python-$PYTHON_VERSION.tar.xz.asc" \
 	&& export GNUPGHOME="$(mktemp -d)" \
-	&& gpg --keyserver ha.pool.sks-keyservers.net --recv-keys "$GPG_KEY" \
-	&& gpg --batch --verify python.tar.xz.asc python.tar.xz \
 	&& rm -rf "$GNUPGHOME" python.tar.xz.asc \
 	&& mkdir -p /usr/src/python \
 	&& tar -xJC /usr/src/python --strip-components=1 -f python.tar.xz \
@@ -47,8 +46,8 @@ RUN set -ex \
 		linux-headers \
 		make \
 		ncurses-dev \
-		libressl \
-		libressl-dev \
+		openssl \
+		openssl-dev \
 		pax-utils \
 		readline-dev \
 		sqlite-dev \
@@ -57,6 +56,7 @@ RUN set -ex \
 		tk-dev \
 		xz-dev \
 		zlib-dev \
+
 # add build deps before removing fetch deps in case there's overlap
 	&& apk del .fetch-deps \
 	\
@@ -104,7 +104,7 @@ ENV PYTHON_PIP_VERSION 10.0.1
 
 RUN set -ex; \
 	\
-	apk add --no-cache --virtual .fetch-deps libressl; \
+	apk add --no-cache --virtual .fetch-deps openssl; \
 	\
 	wget -O get-pip.py 'https://bootstrap.pypa.io/get-pip.py'; \
 	\
